@@ -302,7 +302,7 @@ export default class Typeahead extends Component {
           )}
         </Menu>
         <Status
-          length={options.length}
+          length={menuOpen ? options.length : 0}
           queryLength={query.length}
           minQueryLength={minLength}
         />
