@@ -4,6 +4,8 @@
 
 _(add items here for easier creation of next log entry)_
 
+- [Breaking] Don't focus suggestions when hovering them, instead rely on separate `hovered` state.
+
 ## 0.3.5 - 2017-04-06
 
 - Don't prepopulate `defaultValue` in `enhanceSelectElement`.

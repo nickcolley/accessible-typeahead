@@ -33,6 +33,7 @@ export default class Typeahead extends Component {
 
     this.state = {
       focused: null,
+      hovered: null,
       menuOpen: false,
       options: props.defaultValue ? [props.defaultValue] : [],
       query: props.defaultValue,
@@ -49,7 +50,7 @@ export default class Typeahead extends Component {
     this.handleOptionFocusOut = this.handleOptionFocusOut.bind(this)
     this.handleOptionFocus = this.handleOptionFocus.bind(this)
     this.handleOptionMouseDown = this.handleOptionMouseDown.bind(this)
-    this.handleOptionMouseMove = this.handleOptionMouseMove.bind(this)
+    this.handleOptionMouseEnter = this.handleOptionMouseEnter.bind(this)
     this.handleOptionMouseOut = this.handleOptionMouseOut.bind(this)
 
     this.handleInputBlur = this.handleInputBlur.bind(this)
@@ -207,23 +208,30 @@ export default class Typeahead extends Component {
     })
   }
 
-  handleOptionMouseMove (idx) {
+  handleOptionMouseEnter (evt, idx) {
     this.setState({
-      focused: idx
+      hovered: idx
     })
   }
 
   handleOptionMouseOut (evt, idx) {
+    const { focused, selected } = this.state
     const previousOption = this.elementRefs[idx - 1]
     const nextOption = this.elementRefs[idx + 1]
     const toElement = evt.toElement
     const movingToAnotherOption = toElement === previousOption || toElement === nextOption
-    const focusBackOnSelectedOption = !movingToAnotherOption
-    if (focusBackOnSelectedOption) {
-      this.setState({
-        focused: this.state.selected
-      })
-    }
+    const inputFocused = focused === -1
+    const focusBackOnSelectedOption = !movingToAnotherOption && !inputFocused
+    const newFocused = focusBackOnSelectedOption ? selected : focused
+    const newHovered = movingToAnotherOption
+      ? toElement === nextOption
+        ? idx + 1
+        : idx - 1
+      : null
+    this.setState({
+      focused: newFocused,
+      hovered: newHovered
+    })
   }
 
   handleOptionClick (evt, idx) {
@@ -301,7 +309,7 @@ export default class Typeahead extends Component {
 
   render () {
     const { cssNamespace, displayMenu, id, minLength, name } = this.props
-    const { focused, menuOpen, options, query, selected } = this.state
+    const { focused, hovered, menuOpen, options, query, selected } = this.state
     const autoselect = this.hasAutoselect()
 
     const inputFocused = focused === -1
@@ -373,9 +381,10 @@ export default class Typeahead extends Component {
     const Option = ({ dangerouslySetInnerHTML, idx }) => {
       const cn = `${cssNamespace}__option`
       const showFocused = focused === -1 ? selected === idx : focused === idx
-      const cnModFocused = showFocused ? ` ${cn}--focused` : ''
+      const cnModFocused = showFocused && !hovered ? ` ${cn}--focused` : ''
+      const cnModHovered = hovered === idx ? ` ${cn}--hovered` : ''
       const cnModOdd = (idx % 2) ? ` ${cn}--odd` : ''
-      const cns = `${cn}${cnModFocused}${cnModOdd}`
+      const cns = `${cn}${cnModFocused}${cnModOdd}${cnModHovered}`
       return <li
         aria-selected={focused === idx}
         className={cns}
@@ -384,7 +393,7 @@ export default class Typeahead extends Component {
         onClick={(evt) => this.handleOptionClick(evt, idx)}
         onFocusOut={(evt) => this.handleOptionFocusOut(evt, idx)}
         onMouseDown={this.handleOptionMouseDown}
-        onMouseMove={() => this.handleOptionMouseMove(idx)}
+        onMouseEnter={(evt) => this.handleOptionMouseEnter(evt, idx)}
         onMouseOut={(evt) => this.handleOptionMouseOut(evt, idx)}
         role='option'
         tabindex='-1'
