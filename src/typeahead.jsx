@@ -45,6 +45,7 @@ export default class Typeahead extends Component {
     this.handleUpArrow = this.handleUpArrow.bind(this)
     this.handleDownArrow = this.handleDownArrow.bind(this)
     this.handleEnter = this.handleEnter.bind(this)
+    this.handleDefaultKeyDown = this.handleDefaultKeyDown.bind(this)
 
     this.handleOptionClick = this.handleOptionClick.bind(this)
     this.handleOptionFocusOut = this.handleOptionFocusOut.bind(this)
@@ -279,6 +280,14 @@ export default class Typeahead extends Component {
     }
   }
 
+  handleDefaultKeyDown (evt) {
+    const inputEl = this.elementRefs[-1]
+    const eventIsOnInput = evt.target === inputEl
+    if (!eventIsOnInput) {
+      this.handleInputFocus()
+    }
+  }
+
   handleKeyDown (evt) {
     switch (kc[evt.keyCode]) {
       case 'up':
@@ -296,6 +305,7 @@ export default class Typeahead extends Component {
         })
         break
       default:
+        this.handleDefaultKeyDown(evt)
         break
     }
   }
@@ -334,13 +344,17 @@ export default class Typeahead extends Component {
       />
     }
 
-    const Input = () =>
-      <input
+    const Input = () => {
+      const cn = `${cssNamespace}__input`
+      const componentIsFocused = focused !== null
+      const cnModFocused = componentIsFocused ? ` ${cn}--focused` : ''
+      const cns = `${cn}${cnModFocused}`
+      return <input
         aria-activedescendant={focused !== -1 && focused !== null ? `${id}__option--${focused}` : false}
         aria-expanded={menuOpen}
         aria-owns={`${id}__listbox`}
         autocomplete='off'
-        className={`${cssNamespace}__input`}
+        className={cns}
         id={id}
         name={name}
         onBlur={this.handleInputBlur}
@@ -351,6 +365,7 @@ export default class Typeahead extends Component {
         type='text'
         value={query}
       />
+    }
 
     const Menu = ({ children }) => {
       const cn = `${cssNamespace}__menu`
